@@ -1,5 +1,7 @@
 const readline = require('readline');
+const fs = require('fs');
 
+// Rule-based collapse function
 function collapse(input) {
   if (input.includes("help")) return "How can I help?";
   if (input.includes("hi") || input.includes("hello")) return "Hello, friend!";
@@ -8,6 +10,7 @@ function collapse(input) {
   return "I don't understand, but I'm learning!";
 }
 
+// Set up readline interface
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
