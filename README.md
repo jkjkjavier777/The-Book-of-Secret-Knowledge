@@ -1,4 +1,10 @@
 <p align="center">
+  <img src="token_flood_artwork.png" alt="Quantum Entropy Cascade" />
+</p>
+
+> “The archive opens its mouth wider than the event horizon…”
+
+<p align="center">
   <a href="https://github.com/trimstray/the-book-of-secret-knowledge">
     <img src="https://github.com/trimstray/the-book-of-secret-knowledge/blob/master/static/img/the-book-of-secret-knowledge-preview.png" alt="Master">
   </a>
@@ -16,15 +22,6 @@
   </a>
   <a href="LICENSE.md">
     <img src="https://img.shields.io/badge/License-MIT-lightgrey.svg?longCache=true" alt="MIT License">
----
-### Quick Links
-
-- **View the printable book**: `book_readme.html` (letter-formatted).
-- **Visual Archive**: `gallery.html` — artwork and visualizations for *The Book of Secret Knowledge*.  
-  GitHub file: https://github.com/jkjkjavier777/The-Book-of-Secret-Knowledge/blob/main/gallery.html
-- **How to open the book**: `HOW_TO_OPEN.md` — quick start and local viewing instructions.  
-  GitHub file: https://github.com/jkjkjavier777/The-Book-of-Secret-Knowledge/blob/main/HOW_TO_OPEN.md
----
   </a>
 </p>
 <br>
