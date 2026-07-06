@@ -16,7 +16,8 @@
   </a>
   <a href="LICENSE.md">
     <img src="https://img.shields.io/badge/License-MIT-lightgrey.svg?longCache=true" alt="MIT License">
-## Quick Links
+
+###Quick Links
 
 - **View the printable book**: `book_readme.html` (letter-formatted).
 - **Visual Archive**: `gallery.html` — artwork and visualizations for *The Book of Secret Knowledge*.  
