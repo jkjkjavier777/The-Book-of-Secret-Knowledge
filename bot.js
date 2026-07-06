@@ -21,6 +21,7 @@ const rl = readline.createInterface({
 console.log("✨ The Book of Secret Knowledge Chatbot ✨");
 rl.prompt();
 
+// Respond to each line of input
 rl.on('line', (line) => {
   if (line.trim().toLowerCase() === 'exit') {
     console.log("Bot> Goodbye, entropy awaits...");
