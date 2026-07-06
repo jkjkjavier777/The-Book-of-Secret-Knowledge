@@ -1,0 +1,34 @@
+Title: Add Gallery and How To Open guide for The Book of Secret Knowledge
+
+Summary
+-------
+This PR adds a visual gallery page and a concise "How to Open" guide for the repository titled "The Book of Secret Knowledge". It also updates README.md with quick links to the new files.
+
+Changes
+-------
+- Add `gallery.html` — a gallery page that displays the generated artwork and links back to the book files.
+- Add `HOW_TO_OPEN.md` — step-by-step guide for viewing the book on GitHub and locally.
+- Update `README.md` with a Quick Links section pointing to the gallery and the How To Open guide.
+
+Notes
+-----
+- Please upload the generated artwork to the repository assets folder before merging so the gallery displays correctly.
+- The gallery page references the repository title and includes direct links to README.md and book_readme.html for easy navigation.
+
+Acceptance criteria
+-------------------
+- `gallery.html` and `HOW_TO_OPEN.md` are present in the repo root.
+- `README.md` contains the Quick Links section linking to the new files.
+- The artwork file is uploaded and referenced correctly.
+- A maintainer has reviewed and merged the PR.
+
+Files to review
+---------------
+- gallery.html
+- HOW_TO_OPEN.md
+- README.md (Quick Links section)
+
+Suggested reviewers and labels
+------------------------------
+- Reviewers: @javxvii.kjk, @joikaminaga
+- Labels: documentation, enhancement, artwork
