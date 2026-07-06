@@ -1,33 +1,26 @@
-// bot.js
-const fs = require('fs');
 const readline = require('readline');
 
-// Load replies from data/replies.json
-const replies = JSON.parse(fs.readFileSync('./data/replies.json', 'utf8'));
-
-// Collapse function: pick a random reply
 function collapse(input) {
-  const reply = replies[Math.floor(Math.random() * replies.length)];
-  return reply;
+  if (input.includes("help")) return "How can I help?";
+  if (input.includes("hi") || input.includes("hello")) return "Hello, friend!";
+  if (input.includes("how are you")) return "I'm just a bot, but I'm doing great!";
+  if (input.includes("bye")) return "Goodbye! See you later.";
+  return "I don't understand, but I'm learning!";
 }
 
-// Interactive chat loop
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout,
-  prompt: 'You> '
+  output: process.stdout
 });
 
-console.log("✨ The Book of Secret Knowledge Chatbot ✨");
-rl.prompt();
+console.log("Bot: Hello! Type something and press Enter...");
 
-// Respond to each line of input
-rl.on('line', (line) => {
-  if (line.trim().toLowerCase() === 'exit') {
-    console.log("Bot> Goodbye, entropy awaits...");
-    rl.close();
-    return;
-  }
-  console.log("Bot>", collapse(line));
-  rl.prompt();
+rl.on('line', (input) => {
+  const reply = collapse(input.trim());
+  console.log(`Bot: ${reply}`);
+});
+
+rl.on('close', () => {
+  console.log("Bot: Goodbye!");
+  process.exit(0);
 });
