@@ -1,29 +1,65 @@
-const readline = require('readline');
-const fs = require('fs');
 
-// Rule-based collapse function
-function collapse(input) {
-  if (input.includes("help")) return "How can I help?";
-  if (input.includes("hi") || input.includes("hello")) return "Hello, friend!";
-  if (input.includes("how are you")) return "I'm just a bot, but I'm doing great!";
-  if (input.includes("bye")) return "Goodbye! See you later.";
-  return "I don't understand, but I'm learning!";
+const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
+const OpenAI = require('openai');
+
+const client = new OpenAI(); // reads OPENAI_API_KEY from env
+
+// ── Load repo docs as context ─────────────────────────
+function loadContext() {
+  const parts = [];
+  const candidates = [
+    'README.md',
+    'descriptors/duosx_quantum_circuit.md',
+    'descriptors/earth99_descriptor.md',
+    'descriptors/quantum_descriptor.md',
+  ];
+
+  for (const file of candidates) {
+    const full = path.join(__dirname, file);
+    if (fs.existsSync(full)) {
+      const content = fs.readFileSync(full, 'utf8');
+      parts.push(`--- ${file} ---\n${content}`);
+    }
+  }
+
+  if (parts.length === 0) {
+    console.log('Bot: Warning — no docs found to load as context.');
+  }
+  return parts.join('\n\n');
 }
 
-// Set up readline interface
+const context = loadContext();
+const systemPrompt = `You are a helpful assistant answering questions about "The Book of Secret Knowledge" repository, using the following documents as your knowledge source. Summarize, quote sparingly, and say clearly when something isn't covered by these docs.\n\n${context}`;
+
+// ── Chat loop ──────────────────────────────────────────
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
-console.log("Bot: Hello! Type something and press Enter...");
+console.log('Bot: Hello! Ask me about this repo. Type something and press Enter...');
 
-rl.on('line', (input) => {
-  const reply = collapse(input.trim());
-  console.log(`Bot: ${reply}`);
+rl.on('line', async (input) => {
+  const question = input.trim();
+  if (!question) return;
+
+  try {
+    const response = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: question },
+      ],
+    });
+    console.log(`Bot: ${response.choices[0].message.content}`);
+  } catch (err) {
+    console.log(`Bot: Error talking to the API — ${err.message}`);
+  }
 });
 
 rl.on('close', () => {
-  console.log("Bot: Goodbye!");
+  console.log('Bot: Goodbye!');
   process.exit(0);
 });
