@@ -6,7 +6,7 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-const GITHUB_USER = 'your-username';
+const jkjkjavier777 = 'your-username';
 const GITHUB_REPO = 'the-book-of-secret-knowledge';
 const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/`;
 const GITHUB_TOKEN = 'your-github-token'; // Optional for private repos
