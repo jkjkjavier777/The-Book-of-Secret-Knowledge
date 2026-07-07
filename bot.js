@@ -1,65 +1,60 @@
-
+cat > ~/the-book-of-secret-knowledge/bot.js << 'EOF'
+const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
-const readline = require('readline');
-const OpenAI = require('openai');
 
-const client = new OpenAI(); // reads OPENAI_API_KEY from env
-
-// ── Load repo docs as context ─────────────────────────
-function loadContext() {
-  const parts = [];
-  const candidates = [
-    'README.md',
-    'descriptors/duosx_quantum_circuit.md',
-    'descriptors/earth99_descriptor.md',
-    'descriptors/quantum_descriptor.md',
-  ];
-
-  for (const file of candidates) {
-    const full = path.join(__dirname, file);
-    if (fs.existsSync(full)) {
-      const content = fs.readFileSync(full, 'utf8');
-      parts.push(`--- ${file} ---\n${content}`);
-    }
-  }
-
-  if (parts.length === 0) {
-    console.log('Bot: Warning — no docs found to load as context.');
-  }
-  return parts.join('\n\n');
-}
-
-const context = loadContext();
-const systemPrompt = `You are a helpful assistant answering questions about "The Book of Secret Knowledge" repository, using the following documents as your knowledge source. Summarize, quote sparingly, and say clearly when something isn't covered by these docs.\n\n${context}`;
-
-// ── Chat loop ──────────────────────────────────────────
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout,
+  output: process.stdout
 });
 
-console.log('Bot: Hello! Ask me about this repo. Type something and press Enter...');
-
-rl.on('line', async (input) => {
-  const question = input.trim();
-  if (!question) return;
-
+function readFile(filePath) {
   try {
-    const response = await client.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: question },
-      ],
-    });
-    console.log(`Bot: ${response.choices[0].message.content}`);
+    return fs.readFileSync(filePath, 'utf8');
   } catch (err) {
-    console.log(`Bot: Error talking to the API — ${err.message}`);
+    return `Error: Could not read ${filePath}.`;
   }
+}
+
+function listFiles(dir = '.') {
+  try {
+    return fs.readdirSync(dir).map(f => path.join(dir, f));
+  } catch (err) {
+    return [`Error: Could not list ${dir}.`];
+  }
+}
+
+function collapse(input) {
+  const lowerInput = input.toLowerCase().trim();
+
+  if (lowerInput.startsWith('/read ')) {
+    const filePath = lowerInput.slice(6).trim();
+    return readFile(filePath);
+  }
+  if (lowerInput === '/files') {
+    return `Files in repo:\n${listFiles().join('\n')}`;
+  }
+  if (lowerInput.includes('hi') || lowerInput.includes('hello')) {
+    return "Hi, how can I help you?";
+  }
+  if (lowerInput.includes('how are you')) {
+    return "I'm just a bot, but I'm doing great!";
+  }
+  if (lowerInput.includes('bye')) {
+    return "Goodbye! See you later.";
+  }
+  return "I don't understand. Try: '/read README.md', '/files', or ask me a question!";
+}
+
+console.log("Bot: Hi, how can I help you?");
+
+rl.on('line', (input) => {
+  const reply = collapse(input);
+  console.log(`Bot: ${reply}`);
 });
 
 rl.on('close', () => {
-  console.log('Bot: Goodbye!');
+  console.log("Bot: Goodbye!");
   process.exit(0);
 });
+EOF
