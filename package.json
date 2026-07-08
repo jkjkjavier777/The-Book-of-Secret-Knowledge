@@ -1,0 +1,19 @@
+{
+  "name": "quantum-chatbot",
+  "version": "1.0.0",
+  "description": "GitHub repo chatbot",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "nodemon bot.js"
+  },
+  "keywords": ["chatbot", "github", "node"],
+  "author": "jkjkjavier777",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
