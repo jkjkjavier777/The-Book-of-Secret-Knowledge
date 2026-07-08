@@ -1,24 +1,32 @@
+// server/server.js
+// Filename: server/server.js
+//
+// Minimal Express backend for the quantum chatbot.
+// The API key is NEVER hardcoded here — it's read from an environment
+// variable at runtime. Set it in a local .env file (see .env.example),
+// which must stay out of git (already covered by .gitignore).
+
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
-require('dotenv').config();
 
 const app = express();
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'site')));
-
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const PORT = process.env.PORT || 3000;
+const API_KEY = process.env.ANTHROPIC_API_KEY;
 
-if (!ANTHROPIC_API_KEY) {
-  console.error('Missing ANTHROPIC_API_KEY in .env — see README for setup steps.');
+if (!API_KEY) {
+  console.error('Missing ANTHROPIC_API_KEY. Set it in your local .env file — see .env.example.');
   process.exit(1);
 }
 
-app.post('/api/chat', async (req, res) => {
-  const { messages } = req.body;
+app.use(express.json());
+app.use(express.static(path.join(__dirname, '..', 'site')));
 
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({ error: 'messages array is required' });
+app.post('/api/chat', async (req, res) => {
+  const { message } = req.body;
+
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ error: 'Missing "message" string in request body.' });
   }
 
   try {
@@ -26,33 +34,33 @@ app.post('/api/chat', async (req, res) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-5',
-        max_tokens: 1024,
-        messages,
-      }),
+        model: 'claude-sonnet-4-6',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: message }]
+      })
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || 'Anthropic API error' });
+      const errText = await response.text();
+      console.error('Anthropic API error:', response.status, errText);
+      return res.status(502).json({ error: 'Upstream API error.' });
     }
 
-    const text = data.content
-      ?.filter((block) => block.type === 'text')
-      .map((block) => block.text)
-      .join('\n') || '';
+    const data = await response.json();
+    const textBlock = data.content.find((block) => block.type === 'text');
+    const reply = textBlock ? textBlock.text : 'No text reply returned.';
 
-    res.json({ reply: text });
+    res.json({ reply });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Server error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Chatbot running at http://localhost:${PORT}`);
+  console.log(`Quantum chatbot server running at http://localhost:${PORT}`);
 });
