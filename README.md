@@ -1,66 +1,77 @@
-import http.server
-import socketserver
+import base64
+import datetime
 import json
-import os
-import random
+import requests
 
-PORT = 8000
-# Reference paths relative to the script location
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-REPO_ROOT = os.path.dirname(SCRIPT_DIR)
-SITE_DIR = os.path.join(REPO_ROOT, "site")
-DATA_FILE = os.path.join(REPO_ROOT, "data", "replies.json")
+# Repository Configuration
+GITHUB_TOKEN = "your_github_token"
+REPO = "username/quantum-chatbot-ledger"
+PATH = "README.md"
 
-class QuantumBotHandler(http.server.SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        # Point the default file server to serve assets straight out of the site folder
-        super().__init__(*args, directory=SITE_DIR, **kwargs)
-
-    def do_POST(self):
-        if self.path == '/chat':
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            request_json = json.loads(post_data.decode('utf-8'))
-            user_input = request_json.get("message", "").strip().lower()
-            
-            # Collapse the quantum logic statement
-            reply = self.resolve_quantum_state(user_input)
-            
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            
-            response = {"reply": reply}
-            self.wfile.write(json.dumps(response).encode('utf-8'))
-        else:
-            self.send_error(404, "Endpoint not found")
-
-    def resolve_quantum_state(self, user_input):
-        # Load the dynamic reply database on every call to support live modifications
-        try:
-            with open(DATA_FILE, 'r', encoding='utf-8') as f:
-                replies_bank = json.load(f)
-        except Exception:
-            return "Error: Unable to verify repository data context bank."
-
-        if user_input in replies_bank:
-            options = replies_bank[user_input]
-            return random.choice(options)
+def update_live_ledger(error_vector, entropy_val, trace_snippet):
+    url = f"https://api.github.com/repos/{REPO}/contents/{PATH}"
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    
+    # 1. Pull existing repo state
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        print("Failed to pull reference ledger.")
+        return
         
-        return "No entangled reply found for that input yet — still in an undefined state."
+    file_data = response.json()
+    current_content = base64.b64decode(file_data['content']).decode('utf-8')
+    sha = file_data['sha']
+    
+    now_str = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+    
+    # 2. Re-compile the Live System Header Beam
+    new_dashboard = f"""## 🔴 LIVE STATUS: SEMANTIC MELTDOWN
+| Metric | Value | Baseline Status |
+| :--- | :--- | :--- |
+| **System State** | `|divergent⟩` | CRITICAL DRIFT |
+| **Telemetry Node** | Active (External Ledger) | Connected |
+| **Delta ($\Delta$) Stability** | {entropy_val} | Out of Bounds |
+| **Last Collision State** | `{error_vector}` | Active Warning |
+| **Last Updated** | {now_str} | Write Complete |
+"""
 
-if __name__ == "__main__":
-    print(f"Initializing connection layout...")
-    print(f"Mapping interface vector to root: {SITE_DIR}")
-    print(f"Anchoring data target to stream: {DATA_FILE}")
+    # 3. Formulate the historical chronological update
+    new_ledger_entry = f"""### [{now_str}] • SYSTEM MUTATION ENCOUNTERED
+* **Vector:** `{error_vector}`
+* **Observed Entropy:** $H = {entropy_val}$
+* **Telemetry Trace:**
+    ```text
+    {trace_snippet}
+    ```
+"""
+
+    # 4. Splice the data into the historical placeholder
+    if "" in current_content and "" in current_content:
+        top_split = current_content.split("")[0]
+        bottom_split = current_content.split("")[1]
+        
+        # Insert new telemetry right beneath the structural ledger header
+        if "" in bottom_split:
+            log_parts = bottom_split.split("")
+            bottom_split = log_parts[0] + "\n\n" + new_ledger_entry + log_parts[1]
+            
+        updated_content = top_split + new_dashboard + bottom_split
+    else:
+        print("Template markers missing. Execution aborted to safeguard integrity.")
+        return
+
+    # 5. Commit back to the public ledger
+    payload = {
+        "message": f"telemetry_sync: state mutation {error_vector} logged",
+        "content": base64.b64encode(updated_content.encode('utf-8')).decode('utf-8'),
+        "sha": sha
+    }
     
-    # Change directory context so handler cleanly binds path maps
-    os.chdir(SITE_DIR)
-    
-    with socketserver.TCPServer(("", PORT), QuantumBotHandler) as httpd:
-        print(f"🟢 Quantum Bot Engine Live at: http://localhost:{PORT}")
-        print("Press Ctrl+C to disconnect state variables safely.")
-        try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\nShutting down engine loop gracefully.")
+    put_response = requests.put(url, headers=headers, data=json.dumps(payload))
+    if put_response.status_code == 200:
+        print("Telemetry securely anchored to public record.")
+    else:
+        print("Failed to lock public commit.", put_response.text)
