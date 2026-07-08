@@ -1,36 +1,87 @@
-const fs = require('fs');
-const path = require('path');
-const replies = require('./data/replies.json');
+const readline = require('readline');
+const fetch = require('node-fetch');
 
-/**
- * Collapse logic: normal replies OR self-edit commands.
- */
-async function collapse(input) {
-  const key = input.trim().toLowerCase();
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
-  // --- Self-edit commands ---
-  if (key.startsWith('/append ')) {
-    const text = input.slice(8).trim();
-    fs.appendFileSync('README.md', `\n${text}\n`);
-    return `Appended to README.md: "${text}"`;
+const GITHUB_USER = 'your-username';
+const GITHUB_REPO = 'the-book-of-secret-knowledge';
+const GITHUB_API_BASE = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/`;
+const GITHUB_TOKEN = '';
+
+async function fetchFile(filePath) {
+  const url = `${GITHUB_API_BASE}${filePath}`;
+  const headers = {
+    Accept: 'application/vnd.github.v3+json',
+    'User-Agent': 'Node.js Bot'
+  };
+  if (GITHUB_TOKEN) headers.Authorization = `token ${GITHUB_TOKEN}`;
+
+  try {
+    const response = await fetch(url, { headers });
+    if (!response.ok) return `Error: Could not fetch ${filePath}.`;
+    const data = await response.json();
+    if (data.type === 'file') {
+      return Buffer.from(data.content, 'base64').toString('utf8');
+    }
+    return `Error: ${filePath} is not a file.`;
+  } catch (err) {
+    return `Error: ${err.message}`;
   }
-
-  if (key.startsWith('/addreply ')) {
-    const [trigger, ...variants] = input.slice(10).split('|').map(s => s.trim());
-    replies[trigger] = variants;
-    fs.writeFileSync(path.join(__dirname, 'data/replies.json'), JSON.stringify(replies, null, 2));
-    return `Added new reply set for "${trigger}" with ${variants.length} variants.`;
-  }
-
-  // --- Normal collapse replies ---
-  const options = replies[key];
-  if (!options) {
-    return "No entangled reply found for that input yet — still in an undefined state.";
-  }
-  const index = Math.floor(Math.random() * options.length);
-  return options[index];
 }
 
-// Interactive loop
-const readline = require('readline');
-const rl = readline.create
+async function listFiles(dir = '') {
+  const url = `${GITHUB_API_BASE}${dir}`;
+  const headers = {
+    Accept: 'application/vnd.github.v3+json',
+    'User-Agent': 'Node.js Bot'
+  };
+  if (GITHUB_TOKEN) headers.Authorization = `token ${GITHUB_TOKEN}`;
+
+  try {
+    const response = await fetch(url, { headers });
+    if (!response.ok) return [`Error: Could not list ${dir}.`];
+    const files = await response.json();
+    return files.map(file => file.name);
+  } catch (err) {
+    return [`Error: ${err.message}`];
+  }
+}
+
+async function collapse(input) {
+  const lowerInput = input.toLowerCase().trim();
+
+  if (lowerInput.startsWith('/read ')) {
+    return await fetchFile(lowerInput.slice(6).trim());
+  }
+  if (lowerInput === '/files') {
+    const files = await listFiles();
+    return `Files in repo:
+${files.join('
+')}`;
+  }
+  if (lowerInput.includes('hi') || lowerInput.includes('hello')) {
+    return 'Hi, how can I help you?';
+  }
+  if (lowerInput.includes('how are you')) {
+    return "I'm just a bot, but I'm doing great!";
+  }
+  if (lowerInput.includes('bye')) {
+    return 'Goodbye! See you later.';
+  }
+  return "I don't understand. Try: '/read README.md', '/files', or ask me a question!";
+}
+
+console.log('Bot: Hi, how can I help you?');
+
+rl.on('line', async (input) => {
+  const reply = await collapse(input);
+  console.log(`Bot: ${reply}`);
+});
+
+rl.on('close', () => {
+  console.log('Bot: Goodbye!');
+  process.exit(0);
+});
