@@ -1,37 +1,28 @@
-# Book of Secret Knowledge
+# 📖 The Book of Knowledge — Quantum Chatbot
 
-## PROLOGUE
-<token.flood>
-The archive opens its mouth wider than the event horizon…
-Entropy answers in static.
-</token.flood>
+A playful archive where inputs begin in **superposition** → collapse → one concrete answer.  
+This repo is both a **reply bank** and a **bot engine**.
 
 ---
 
-## AI Speech Continuity Study
-Sandbox protocol exploring dual‑track trust architecture:
-- N = 10 pilot trials
-- τ = 0.15 deviation threshold
-- p = 0.7 robustness proportion
-- Conceptual only — no live infrastructure
+## 📂 Structure
 
-### Outcome
-- mean(Δ): +0.87
-- Inter‑rater reliability κ ≈ 0.78
-- Clean H₁ signal
+| Path | Purpose |
+|------|---------|
+| **data/replies.json** | Bank of inputs → reply variants |
+| **bot.js** | Collapse logic, picks a random reply |
+| **README.md** | Documentation and usage guide |
 
 ---
 
-## Table of Contents
-- CLI Tools
-- GUI Tools
-- Web Tools
-- Systems/Services
-- Networks
-- Containers/Orchestration
-- Manuals/Tutorials
-- Inspiring Lists
-- Blogs/Podcasts/Videos
-- Hacking/Penetration Testing
-- Cheat Sheets
-- Shell Tricks & Functions
+## 🧠 Reply Bank
+
+The chatbot draws from `data/replies.json`. Each key is a lowercase input string, with 2–4 witty quantum‑style variants. Example:
+
+```json
+{
+  "how are you?": [
+    "Currently in superposition: |great) + |tired).",
+    "Measuring... collapsed to: pretty good, actually."
+  ]
+}
