@@ -26,3 +26,30 @@ The chatbot draws from `data/replies.json`. Each key is a lowercase input string
     "Measuring... collapsed to: pretty good, actually."
   ]
 }
+
+const replies = require('./data/replies.json');
+
+/**
+ * Given a user input string, return a "collapsed" reply.
+ * Falls back to a generic superposition joke if no match is found.
+ */
+function collapse(input) {
+  const key = input.trim().toLowerCase();
+  const options = replies[key];
+
+  if (!options) {
+    return "No entangled reply found for that input yet — still in an undefined state.";
+  }
+
+  const index = Math.floor(Math.random() * options.length);
+  return options[index];
+}
+
+// Example usage:
+if (require.main === module) {
+  const input = process.argv.slice(2).join(' ') || "how are you?";
+  console.log(`> ${input}`);
+  console.log(collapse(input));
+}
+
+module.exports = { collapse };
