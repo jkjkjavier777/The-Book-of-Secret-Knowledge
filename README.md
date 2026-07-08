@@ -1,235 +1,45 @@
-# 📖 The Book of Knowledge — Quantum Chatbot
+# quantum-chatbot-replies
 
-A playful archive where inputs begin in **superposition** → collapse → one concrete answer.  
-This repo is both a **reply bank** and a **bot engine**.
+Playful "quantum computer" persona replies for small talk — superposition
+setup → collapse → one concrete answer.
 
----
-
-## 📂 Structure
+## Structure
 
 | Path | Purpose |
 |------|---------|
-| **data/replies.json** | Bank of inputs → reply variants |
-| **bot.js** | Collapse logic, picks a random reply |
-| **README.md** | Documentation and usage guide |
+| `data/replies.json` | Bank of inputs → reply variants |
+| `bot.js` | Collapse logic — picks a random reply (Node/CLI) |
+| `site/index.html` | Same logic, running in-browser via GitHub Pages |
+| `docs/README_legacy.md` | Earlier version of this README, kept for reference |
 
----
+## Usage
+```bash
+node bot.js "how are you?"
+```
 
-## 🧠 Reply Bank
+## Adding inputs
+Add a lowercase key to `replies.json` with 2–4 variants.
 
-The chatbot draws from `data/replies.json`. Each key is a lowercase input string, with 2–4 witty quantum‑style variants. Example:
+## Publish
+```bash
+git init && git add . && git commit -m "Initial reply bank"
+git branch -M main && git remote add origin <repo-url> && git push -u origin main
+```
 
-```json
-{
-  "how are you?": [
-    "Currently in superposition: |great) + |tired).",
-    "Measuring... collapsed to: pretty good, actually."
-  ]
-}
+## 📂 Folder Structure
+```
+📁 docs/           → HOW_TO_OPEN.md
+📁 book/           → book_readme.html
+📁 scripts/        → render_book.py
+📁 site/           → index.html, gallery.html
+📁 _quarantine/    → token_flood_artwork.png, PR body.txt (needs manual review)
+📄 README.md       → stays at repo root
+```
 
-const replies = require('./data/replies.json');
+## Issues → Commits
+How a change should flow through the repo:
 
-/**
- * Given a user input string, return a "collapsed" reply.
- * Falls back to a generic superposition joke if no match is found.
- */
-function collapse(input) {
-  const key = input.trim().toLowerCase();
-  const options = replies[key];
-
-  if (!options) {
-    return "No entangled reply found for that input yet — still in an undefined state.";
-  }
-
-  const index = Math.floor(Math.random() * options.length);
-  return options[index];
-}
-
-// Example usage:
-if (require.main === module) {
-  const input = process.argv.slice(2).join(' ') || "how are you?";
-  console.log(`> ${input}`);
-  console.log(collapse(input));
-}
-
-module.exports = { collapse };
-
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Quantum Chatbot</title>
-<style>
-  :root {
-    --bg: #0d1117;
-    --panel: #161b22;
-    --text: #e6edf3;
-    --accent: #7ee787;
-    --muted: #8b949e;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    display: flex;
-    justify-content: center;
-    padding: 24px;
-  }
-
-  /* ---------- HEADER ---------- */
-  header {
-    max-width: 560px;
-    width: 100%;
-    text-align: center;
-    margin-bottom: 16px;
-  }
-  header h1 {
-    font-size: 20px;
-    margin: 0 0 4px 0;
-    letter-spacing: 0.5px;
-  }
-  header p {
-    color: var(--muted);
-    font-size: 13px;
-    margin: 0;
-  }
-
-  /* ---------- BODY / CHAT PANEL ---------- */
-  main {
-    max-width: 560px;
-    width: 100%;
-    background: var(--panel);
-    border: 1px solid #30363d;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    height: 60vh;
-  }
-  #log {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    font-size: 14px;
-    line-height: 1.5;
-  }
-  .msg { margin-bottom: 10px; }
-  .msg.user { color: var(--text); }
-  .msg.bot { color: var(--accent); }
-  .msg .tag { color: var(--muted); margin-right: 6px; }
-
-  form {
-    display: flex;
-    border-top: 1px solid #30363d;
-  }
-  input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--text);
-    padding: 12px;
-    font-family: inherit;
-    font-size: 14px;
-    outline: none;
-  }
-  button {
-    background: none;
-    border: none;
-    color: var(--accent);
-    padding: 0 16px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 14px;
-  }
-
-  /* ---------- FOOTER ---------- */
-  footer {
-    max-width: 560px;
-    width: 100%;
-    text-align: center;
-    margin-top: 12px;
-    font-size: 11px;
-    color: var(--muted);
-  }
-</style>
-</head>
-<body>
-
-  <div style="display:flex; flex-direction:column; align-items:center; width:100%;">
-
-    <!-- HEADER: title + tagline -->
-    <header>
-      <h1>&gt; quantum_chatbot</h1>
-      <p>superposition in, one collapsed answer out</p>
-    </header>
-
-    <!-- BODY: chat log + input -->
-    <main>
-      <div id="log"></div>
-      <form id="chat-form">
-        <input id="chat-input" type="text" placeholder="how are you?" autocomplete="off" />
-        <button type="submit">send</button>
-      </form>
-    </main>
-
-    <!-- FOOTER: repo pointer -->
-    <footer>reply bank lives in data/replies.json — add lines to teach it more</footer>
-
-  </div>
-
-<script>
-  // Reply bank — same shape as data/replies.json
-  const replies = {
-    "how are you?": [
-      "Currently in superposition: |great⟩ + |tired⟩. Ask again to collapse the wavefunction.",
-      "Measuring... collapsed to: pretty good, actually.",
-      "Depends on the basis you measure in. Emotionally? Stable. Computationally? Overclocked."
-    ],
-    "what's up?": [
-      "Entangled with your last message. Whatever you're feeling, I'm probably correlated with it.",
-      "Running a few thousand possible replies in parallel. You just observed one."
-    ],
-    "are you okay?": [
-      "Measuring... collapsed to: yes. (Before you asked, I was everything at once.)",
-      "Stable state, low error rate. All good."
-    ],
-    "tell me a joke": [
-      "Why did the qubit break up with the bit? It needed space for more than one answer."
-    ]
-  };
-
-  function collapse(input) {
-    const key = input.trim().toLowerCase();
-    const options = replies[key];
-    if (!options) {
-      return "No entangled reply found for that input yet — still in an undefined state.";
-    }
-    return options[Math.floor(Math.random() * options.length)];
-  }
-
-  const log = document.getElementById('log');
-  const form = document.getElementById('chat-form');
-  const input = document.getElementById('chat-input');
-
-  function addMsg(text, cls, tag) {
-    const div = document.createElement('div');
-    div.className = 'msg ' + cls;
-    div.innerHTML = '<span class="tag">' + tag + '</span>' + text;
-    log.appendChild(div);
-    log.scrollTop = log.scrollHeight;
-  }
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const text = input.value;
-    if (!text.trim()) return;
-    addMsg(text, 'user', '&gt;');
-    addMsg(collapse(text), 'bot', 'ψ');
-    input.value = '';
-  });
-</script>
-
-</body>
-</html>
+1. **Open an issue** describing the fix or addition (e.g. "reply bank missing 'good morning'").
+2. **Reference it in the commit** — `git commit -m "Add greeting replies, closes #4"`. The `closes #4` auto-closes the issue when merged.
+3. **One issue, one focused commit** where possible — makes it easy to trace *why* a file changed later.
+4. **PRs for anything touching `_quarantine/`** — don't commit those files straight to `main` until they've been reviewed.
