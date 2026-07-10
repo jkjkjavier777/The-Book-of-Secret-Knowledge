@@ -1,0 +1,46 @@
+example.com/
+│
+├── .git/                  # Git repository (auto-created)
+├── .gitignore             # Git ignore rules (see below)
+├── .env                  # Environment variables (SECRETS - NEVER COMMIT)
+├── .env.example          # Template for .env (commit this)
+│
+├── README.md             # Project documentation
+├── LICENSE               # License file (MIT, GPL, etc.)
+│
+├── public/               # Static files (HTML, CSS, JS, images)
+│   ├── index.html
+│   ├── styles/
+│   │   └── main.css
+│   ├── scripts/
+│   │   └── main.js
+│   └── assets/
+│       ├── images/
+│       └── fonts/
+│
+├── src/                  # Source code
+│   ├── app.js             # Main application file (Node.js/Express)
+│   ├── routes/           # API/route handlers
+│   │   ├── api.js
+│   │   └── web.js
+│   ├── controllers/      # Business logic
+│   │   └── userController.js
+│   ├── models/           # Database models (if applicable)
+│   │   └── User.js
+│   └── utils/            # Helper functions
+│       └── logger.js
+│
+├── config/               # Configuration files
+│   ├── db.js             # Database config
+│   └── passport.js       # Auth config (if using Passport.js)
+│
+├── tests/                # Test files
+│   ├── unit/
+│   └── integration/
+│
+├── node_modules/         # Dependencies (ignored via .gitignore)
+├── package.json          # Node.js dependencies
+├── package-lock.json    # Lock file (ignored via .gitignore)
+│
+└── docs/                 # Documentation
+    └── api.md
