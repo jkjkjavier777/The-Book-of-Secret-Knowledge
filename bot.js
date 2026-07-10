@@ -1,43 +1,12 @@
-const fs = require('fs');
-const path = require('path');
-const readline = require('readline');
+# Update system
+sudo apt update && sudo apt upgrade -y
 
-const repliesPath = path.join(__dirname, 'data', 'replies.json');
-const replies = require(repliesPath);
+# Install Python + pip + venv if you don't have them
+sudo apt install python3 python3-pip python3-venv -y
 
-async function collapse(input) {
-  const key = input.trim().toLowerCase();
+# Create project folder
+mkdir ~/my_chatbot && cd ~/my_chatbot
 
-  if (key.startsWith('/append ')) {
-    const text = input.slice(8).trim();
-    fs.appendFileSync(path.join(__dirname, 'README.md'), `
-${text}
-`);
-    return `Appended to README.md: "${text}"`;
-  }
-
-  if (key.startsWith('/addreply ')) {
-    const [trigger, ...variants] = input.slice(10).split('|').map(s => s.trim());
-    replies[trigger] = variants;
-    fs.writeFileSync(repliesPath, JSON.stringify(replies, null, 2));
-    return `Added new reply set for "${trigger}" with ${variants.length} variants.`;
-  }
-
-  const options = replies[key];
-  if (!options) {
-    return "No entangled reply found for that input yet — still in an undefined state.";
-  }
-
-  const index = Math.floor(Math.random() * options.length);
-  return options[index];
-}
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-
-rl.on('line', async (input) => {
-  const reply = await collapse(input);
-  console.log(reply);
-});
+# Make virtual environment so deps don't conflict
+python3 -m venv venv
+source venv/bin/activate # You'll need to run this each time you work on it
