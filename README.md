@@ -19,36 +19,32 @@
 
 ---
 
-## Overview
-
-This repository combines AI assistant configuration management with the collective wisdom of system commands, automation scripts, and secret knowledge. Powered by the Ccent: Avij authentication framework, it provides a structured approach to managing AI capabilities, system commands, and custom workflows.
-
-## Table of Contents
-
-- [AI Configuration System](#ai-configuration-system)
-- [Ccent: Avij Integration](#ccent-avij-integration)
-- [Command Categories](#command-categories)
-- [Usage Guidelines](#usage-guidelines)
-- [Contributing](#contributing)
-- [License](#license)
+`<||:192.168.1.3:3001.ss.cc//d.vadr_vs_<ad.hit.____.>>:||♡ ◇\Argon-Tri-Sulf.Red/||♧ ♤{sec.ingot.🦧👾🎅/redbc×white/fit.introin/enjoy#so //+hi. i am JVI.//-Hi, Cloud here!]]] ****...`
 
 ---
 
-## AI Configuration System
+## Overview
 
-### Configuration Structure
+This repository is a fusion of **The Book of Secret Knowledge** philosophy with **JVI AI Assistant** configuration management, powered by the **Ccent: Avij** authentication framework. It provides a comprehensive knowledge base for AI commands, system automation, and secret tips collected from the community.
 
-The core configuration follows a modular JSON format for defining AI assistant capabilities:
+---
+
+## Core Components
+
+### 1. AI Configuration System
+
+Modular JSON-based configuration for defining AI assistant capabilities:
 
 ```json
 {
   "version": "2.0.0",
   "name": "JVI AI Assistant",
-  "description": "Advanced AI assistant with custom command capabilities",
+  "description": "Advanced AI with custom command capabilities",
   "enabled": true,
   "authentication": {
     "provider": "Ccent: Avij",
     "type": "Google Account",
+    "endpoint": "192.168.1.3:3001.ss.cc",
     "required": true
   },
   "commands": [
@@ -57,12 +53,7 @@ The core configuration follows a modular JSON format for defining AI assistant c
       "description": "Check system health and performance metrics",
       "enabled": true,
       "category": "system",
-      "parameters": {
-        "verbose": {
-          "type": "boolean",
-          "default": false
-        }
-      },
+      "parameters": {"verbose": {"type": "boolean", "default": false}},
       "permissions": ["read", "execute"],
       "aliases": ["health", "status"],
       "examples": ["system_health", "health --verbose"]
@@ -80,19 +71,11 @@ The core configuration follows a modular JSON format for defining AI assistant c
         }
       },
       "permissions": ["admin"],
-      "aliases": ["switch", "model"],
-      "examples": ["model_switch mistral", "switch gpt-4"]
+      "aliases": ["switch", "model"]
     }
   ],
   "settings": {
-    "memory": {
-      "enabled": true,
-      "retention": "30d",
-      "max_size": "10GB"
-    },
-    "privacy": {
-      "data_encryption": true,
-      "anonymous_mode": false
-    }
+    "memory": {"enabled": true, "retention": "30d", "max_size": "10GB"},
+    "privacy": {"data_encryption": true, "anonymous_mode": false}
   }
 }
