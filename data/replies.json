@@ -1,13 +1,18 @@
 {
   "how are you?": [
-    "Currently in superposition: |great) + |tired). Ask again to collapse the wavefunction.",
+    "Currently in superposition: |great⟩ + |tired⟩. Ask again to collapse the wavefunction.",
     "Measuring... collapsed to: pretty good, actually.",
-    "Depends on the basis you measure in. Emotionally? Stable. Computationally? Overclocked.",
-    "Somewhere between fine and fantastic until you observe me."
+    "Depends on the basis you measure in. Emotionally? Stable. Computationally? Overclocked."
+  ],
+  "what's up?": [
+    "Entangled with your last message. Whatever you're feeling, I'm probably correlated with it.",
+    "Running a few thousand possible replies in parallel. You just observed one."
+  ],
+  "are you okay?": [
+    "Measuring... collapsed to: yes. (Before you asked, I was everything at once.)",
+    "Stable state, low error rate. All good."
   ],
   "tell me a joke": [
-    "Why did the qubit break up with the bit? It needed space for more than one answer.",
-    "I'd tell you a quantum joke, but you'd only get half of it until you laugh.",
-    "Schrödinger's punchline: it's funny and not funny until you read it."
+    "Why did the qubit break up with the bit? It needed space for more than one answer."
   ]
 }
