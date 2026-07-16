@@ -1,12 +1,15 @@
-// Filename: scripts/ai_chat.js
+// Filename: server/server.js
 //
-// LOCAL LEARNING MODE — no API, no key, no billing required.
-// Uses fuzzy matching against data/replies.json, and can be taught
-// new answers directly, which are saved permanently to that file.
+// LOCAL LEARNING SERVER — no API key, no billing required.
+// Serves the browser frontend (site/index.html) and answers chat
+// requests using the same reply bank + teach logic as scripts/ai_chat.js.
 
-const fs = require('fs');
+const express = require('express');
 const path = require('path');
-const readline = require('readline');
+const fs = require('fs');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 const repliesPath = path.join(__dirname, '..', 'data', 'replies.json');
 
@@ -14,19 +17,15 @@ function loadReplies() {
   return JSON.parse(fs.readFileSync(repliesPath, 'utf8'));
 }
 
-// Only ever called from the explicit "teach:" command below.
 function saveReplies(replies) {
   fs.writeFileSync(repliesPath, JSON.stringify(replies, null, 2));
 }
-
-let replies = loadReplies();
 
 function words(str) {
   return str.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(Boolean);
 }
 
-// Exact match first, then fuzzy word-overlap match as a fallback.
-function findBestMatch(input) {
+function findBestMatch(input, replies) {
   const exactKey = input.trim().toLowerCase();
   if (replies[exactKey]) return exactKey;
 
@@ -48,7 +47,8 @@ function findBestMatch(input) {
 }
 
 function collapse(input) {
-  const match = findBestMatch(input);
+  const replies = loadReplies();
+  const match = findBestMatch(input, replies);
   if (!match) {
     return "I don't understand. Teach me with: teach: your phrase = your answer";
   }
@@ -57,9 +57,9 @@ function collapse(input) {
 }
 
 function teach(input) {
-  // Format: teach: phrase = answer
-  const body = input.slice(6).trim(); // remove "teach:"
-  const parts = body.split('=');
+  const replies = loadReplies();
+  const bodyText = input.slice(6).trim();
+  const parts = bodyText.split('=');
   if (parts.length < 2) {
     return 'Format: teach: your phrase = your answer';
   }
@@ -78,45 +78,31 @@ function teach(input) {
   return `Learned it. "${phrase}" now has ${replies[phrase].length} possible answer(s), saved permanently.`;
 }
 
-function startChat() {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    prompt: '> '
-  });
+app.use(express.json());
+app.use(express.static(path.join(__dirname, '..', 'site')));
 
-  console.log('JVI (local learning mode): no API, no cost. Type a message, "teach: phrase = answer" to teach me, or "exit" to quit.\n');
-  rl.prompt();
+app.post('/api/chat', (req, res) => {
+  const { message } = req.body;
 
-  rl.on('line', (line) => {
-    const text = line.trim();
-    const lower = text.toLowerCase();
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ error: 'Missing "message" string in request body.' });
+  }
 
-    if (lower === 'exit' || lower === 'quit') {
-      console.log('JVI: closing connection. Bye.');
-      rl.close();
-      return;
-    }
+  try {
+    const lower = message.trim().toLowerCase();
+    const reply = lower.startsWith('teach:') ? teach(message) : collapse(message);
+    res.json({ reply });
+  } catch (err) {
+    console.error('Server error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
 
-    if (!text) {
-      rl.prompt();
-      return;
-    }
+app.get('/api/status', (req, res) => {
+  const replies = loadReplies();
+  res.json({ status: 'ok', mode: 'local-learning', phraseCount: Object.keys(replies).length });
+});
 
-    if (lower.startsWith('teach:')) {
-      console.log('JVI: ' + teach(text) + '\n');
-      rl.prompt();
-      return;
-    }
-
-    console.log('JVI: ' + collapse(text) + '\n');
-    rl.prompt();
-  });
-
-  rl.on('close', () => {
-    process.exit(0);
-  });
-}
-
-startChat();
-
+app.listen(PORT, () => {
+  console.log(`Quantum chatbot server (local learning mode) running at http://localhost:${PORT}`);
+});
