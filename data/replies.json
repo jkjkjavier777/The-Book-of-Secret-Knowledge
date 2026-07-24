@@ -1,7 +1,5 @@
 {
-  "greetings": ["Hello, traveler of the quantum realm.", "The universe whispers: Hi."],
-  "quantum_questions": {
-    "entanglement": "A phenomenon where particles remain connected, no matter the distance.",
-    "superposition": "The ability of a system to exist in multiple states at once."
-  }
+    "hi": ["Hello, traveler of the archive.", "The Book acknowledges you."],
+    "how are you?": ["I am 12.123% operational.", "Entropy is my state of being."],
+    "what is knowledge?": ["A seed, a branch, a root.", "The archive whispers: 12.123."]
 }
