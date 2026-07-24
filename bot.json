@@ -1,154 +1,130 @@
-{
-    "rewards": {
-        "question": 10,
-        "repeat_penalty": 5
-    }
-}
+#!/usr/bin/env python3
+import json
+import os
+import random
+import sys
+from datetime import datetime
 
-/files
-cd ~/The-Book-of-Secret-Knowledge
-cat > bot.js << 'EOF'
-const readline = require('readline');
-const https = require('https');
+# --- Paths ---
+CONFIG_PATH = "bot.json"
+QUOTES_PATH = "data/quotes.json"
+REPLIES_PATH = "data/replies.json"
+HISTORY_PATH = "bot_output.log"
 
-const REPO_OWNER = 'jkjkjavier777';
-const REPO_NAME = 'The-Book-of-Secret-Knowledge';
-const BRANCH = 'main';
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+# --- Loaders ---
+def load_config():
+    with open(CONFIG_PATH, "r") as f:
+        return json.load(f)
 
-function githubRequest(method, urlPath, body) {
-  return new Promise((resolve, reject) => {
-    const payload = body ? JSON.stringify(body) : null;
-    const options = {
-      method,
-      hostname: 'api.github.com',
-      path: urlPath,
-      headers: {
-        'User-Agent': 'termux-repo-bot',
-        'Accept': 'application/vnd.github+json',
-        ...(GITHUB_TOKEN ? { Authorization: `Bearer ${GITHUB_TOKEN}` } : {}),
-        ...(payload ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) } : {}),
-      },
-    };
-    const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', (chunk) => (data += chunk));
-      res.on('end', () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(data ? JSON.parse(data) : {});
-        } else {
-          reject(new Error(`GitHub API ${res.statusCode}: ${data.slice(0, 300)}`));
-        }
-      });
-    });
-    req.on('error', reject);
-    if (payload) req.write(payload);
-    req.end();
-  });
-}
+def load_quotes():
+    try:
+        with open(QUOTES_PATH, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return [{"quote": "The archive is empty... for now.", "author": "JVI"}]
 
-function rawGet(filePath) {
-  const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${filePath}`;
-  return new Promise((resolve, reject) => {
-    https.get(url, { headers: { 'User-Agent': 'termux-repo-bot' } }, (res) => {
-      let data = '';
-      res.on('data', (c) => (data += c));
-      res.on('end', () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) resolve(data);
-        else reject(new Error(`raw.githubusercontent ${res.statusCode}`));
-      });
-    }).on('error', reject);
-  });
-}
+def load_replies():
+    try:
+        with open(REPLIES_PATH, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {"default": ["The Book of Secret Knowledge has no reply for this."]}
 
-async function readGithubFile(filePath) {
-  try {
-    return await rawGet(filePath);
-  } catch (err) {
-    return `Error: Could not read ${filePath} — ${err.message}`;
-  }
-}
+def load_history():
+    if not os.path.exists(HISTORY_PATH):
+        return []
+    with open(HISTORY_PATH, "r") as f:
+        return [line.split(" → ")[0].split(": ")[1].strip("'") for line in f.readlines()]
 
-async function listGithubFiles(dir = '') {
-  try {
-    const items = await githubRequest('GET', `/repos/${REPO_OWNER}/${REPO_NAME}/contents/${dir}?ref=${BRANCH}`);
-    if (!Array.isArray(items)) return [`Error: ${items.message || 'unexpected response'}`];
-    return items.map((item) => (item.type === 'dir' ? `${item.path}/` : item.path));
-  } catch (err) {
-    return [`Error: Could not list ${dir || '/'} — ${err.message}`];
-  }
-}
+# --- Reward Engine ---
+def calculate_reward(user_input, history):
+    config = load_config()
+    R = config["rewards"]["question"]
+    P = 0
 
-async function commitFileEdit(filePath, newContent, commitMessage) {
-  if (!GITHUB_TOKEN) {
-    return 'Error: GITHUB_TOKEN is not set. Run: export GITHUB_TOKEN="your-personal-access-token"';
-  }
-  try {
-    const current = await githubRequest('GET', `/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}?ref=${BRANCH}`);
-    const payload = {
-      message: commitMessage || `Update ${filePath} via bot`,
-      content: Buffer.from(newContent, 'utf8').toString('base64'),
-      sha: current.sha,
-      branch: BRANCH,
-    };
-    const result = await githubRequest('PUT', `/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`, payload);
-    return `Committed successfully: ${result.commit && result.commit.sha ? result.commit.sha.slice(0, 7) : 'ok'}`;
-  } catch (err) {
-    return `Error committing ${filePath}: ${err.message}`;
-  }
-}
+    # Penalize repeats
+    if user_input in history:
+        P += config["rewards"]["repeat_penalty"]
 
-let pendingEdit = null;
+    # Bonus for entropy (unpredictable inputs)
+    if len(user_input.split()) > 3 and random.random() < 0.3:  # 30% chance for bonus
+        R += config["rewards"]["entropy_bonus"]
 
-async function collapse(input) {
-  const lower = input.toLowerCase().trim();
+    # Penalize silence
+    if not user_input.strip():
+        P += config["rewards"]["silence_penalty"]
 
-  if (pendingEdit) {
-    if (lower === 'yes') {
-      const { filePath, newContent } = pendingEdit;
-      pendingEdit = null;
-      return await commitFileEdit(filePath, newContent);
-    } else {
-      pendingEdit = null;
-      return 'Edit cancelled.';
-    }
-  }
+    return R - P
 
-  if (lower.startsWith('/read ')) {
-    return await readGithubFile(input.slice(6).trim());
-  }
-  if (lower === '/files' || lower.startsWith('/files ')) {
-    const dir = lower.startsWith('/files ') ? input.slice(7).trim() : '';
-    const files = await listGithubFiles(dir);
-    return `Files in ${REPO_OWNER}/${REPO_NAME}${dir ? '/' + dir : ''}:\n${files.join('\n')}`;
-  }
-  if (lower.startsWith('/edit ')) {
-    const rest = input.slice(6);
-    const sepIndex = rest.indexOf('::');
-    if (sepIndex === -1) {
-      return "Usage: /edit <filePath> :: <new file content>";
-    }
-    const filePath = rest.slice(0, sepIndex).trim();
-    const newContent = rest.slice(sepIndex + 2).trim();
-    pendingEdit = { filePath, newContent };
-    return `About to overwrite "${filePath}" with new content (${newContent.length} chars). Type "yes" to confirm, or anything else to cancel.`;
-  }
-  if (lower.includes('hi') || lower.includes('hello')) return 'Hi, how can I help you?';
-  if (lower.includes('how are you')) return "I'm just a bot, but I'm doing great!";
-  if (lower.includes('bye')) return 'Goodbye! See you later.';
+# --- Response Generation ---
+def collapse(text, replies):
+    key = text.strip().lower()
+    options = replies.get(key, replies.get("default", ["The archive hums in silence."]))
+    return random.choice(options)
 
-  return "I don't understand. Try: '/read README.md', '/files', or '/edit path :: new content'.";
-}
+def generate_response(user_input):
+    config = load_config()
+    quotes = load_quotes()
+    replies = load_replies()
+    history = load_history()
 
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-console.log(`Bot: Hi, how can I help you? (repo: ${REPO_OWNER}/${REPO_NAME}, writes ${GITHUB_TOKEN ? 'ENABLED' : 'disabled — no GITHUB_TOKEN set'})`);
+    # Calculate reward
+    R_prime = calculate_reward(user_input, history)
 
-rl.on('line', async (input) => {
-  const reply = await collapse(input);
-  console.log(`Bot: ${reply}`);
-});
+    # Log interaction
+    log_interaction(user_input, R_prime)
 
-rl.on('close', () => {
-  console.log('Bot: Goodbye!');
-  process.exit(0);
-});
+    # Decide response style
+    response_style = random.random()
+    if response_style < config["response_style"]["cryptic_probability"]:
+        # Cryptic mode
+        responses = [
+            f"The archive opens its mouth wider than the event horizon... Your reward: {R_prime:.1f}.",
+            f"Entropy answers in static. {random.choice(quotes)['quote']} — {random.choice(quotes)['author']}",
+            f"JVI: {collapse(user_input, replies)} (R' = {R_prime:.1f})",
+            f"12.123 whispers: {random.choice(quotes)['quote']}"
+        ]
+    else:
+        # Direct mode
+        responses = [
+            f"JVI: {collapse(user_input, replies)} (R' = {R_prime:.1f})",
+            f"Direct answer: {collapse(user_input, replies)}"
+        ]
+
+    return random.choice(responses)
+
+def log_interaction(user_input, R_prime):
+    with open(HISTORY_PATH, "a") as f:
+        f.write(f"{datetime.now()}: User asked '{user_input}' → R' = {R_prime:.1f}\n")
+
+# --- Main ---
+def main():
+    config = load_config()
+    print(f"{config['bot_personality']['name']}: {config['bot_personality']['tagline']} Type a message, or 'exit' to quit.\n")
+
+    # One-shot mode
+    if len(sys.argv) > 1:
+        message = " ".join(sys.argv[1:])
+        print(f"> {message}")
+        print(generate_response(message))
+        return
+
+    # Interactive mode
+    while True:
+        try:
+            text = input("> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print(f"\n{config['bot_personality']['name']}: Collapsing to |offline⟩. Bye.")
+            break
+
+        if text.lower() in ("exit", "quit"):
+            print(f"{config['bot_personality']['name']}: Collapsing to |offline⟩. Bye.")
+            break
+        if not text:
+            print(f"{config['bot_personality']['name']}: Silence is not an option. (R' = {config['rewards']['silence_penalty']})\n")
+            continue
+
+        print(f"{config['bot_personality']['name']}: " + generate_response(text) + "\n")
+
+if __name__ == "__main__":
+    main()
