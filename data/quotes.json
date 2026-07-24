@@ -1,5 +1,5 @@
-{
-    "hi": ["Hello, traveler of the archive.", "The Book acknowledges you."],
-    "how are you?": ["I am 12.123% operational.", "Entropy is my state of being."],
-    "what is knowledge?": ["A seed, a branch, a root.", "The archive whispers: 12.123."]
-}
+[
+    { "quote": "Knowledge is not a destination. It is a living ecosystem.", "author": "J. Kimo" },
+    { "quote": "Change is certain; Uncertainty is for the weak.", "author": "J. Kimo" },
+    { "quote": "Be who I am.", "author": "J. Kimo" }
+]
