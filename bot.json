@@ -1,3 +1,10 @@
+{
+    "rewards": {
+        "question": 10,
+        "repeat_penalty": 5
+    }
+}
+
 /files
 cd ~/The-Book-of-Secret-Knowledge
 cat > bot.js << 'EOF'
