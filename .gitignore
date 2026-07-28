@@ -1,0 +1,23 @@
+.env
+config.json
+node_modules/
+
+# API keys and sensitive data
+scripts/chatbot/config.json
+data/
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+
+# IDE/Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

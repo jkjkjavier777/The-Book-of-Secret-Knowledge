@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Quantum Chatbot</title>
+
+<style>
+:root{
+--bg:#0d1117;
+--panel:#161b22;
+--text:#e6edf3;
+--accent:#7ee787;
+--muted:#8b949e;
+--error:#f85149;
+}
+
+*{box-sizing:border-box;}
+
+body{
+margin:0;
+background:var(--bg);
+color:var(--text);
+font-family:ui-monospace,"SF Mono",Menlo,monospace;
+display:flex;
+justify-content:center;
+padding:24px;
+}
+
+.wrapper{
+width:100%;
+max-width:560px;
+display:flex;
+flex-direction:column;
+}
+
+header{
+text-align:center;
+margin-bottom:16px;
+}
+
+header h1{
+margin:0;
+font-size:20px;
+}
+
+header p{
+margin-top:6px;
+color:var(--muted);
+font-size:13px;
+}
+
+main{
+background:var(--panel);
+border:1px solid #30363d;
+border-radius:8px;
+height:60vh;
+display:flex;
+flex-direction:column;
+}
+
+#log{
+flex:1;
+overflow-y:auto;
+padding:16px;
+}
+
+.msg{
+margin-bottom:12px;
+line-height:1.5;
+word-wrap:break-word;
+}
+
+.user{
+color:var(--text);
+}
+
+.bot{
+color:var(--accent);
+}
+
+.error{
+color:var(--error);
+}
+
+.tag{
+color:var(--muted);
+margin-right:6px;
+}
+
+form{
+display:flex;
+border-top:1px solid #30363d;
+}
+
+input{
+flex:1;
+padding:12px;
+background:transparent;
+border:none;
+outline:none;
+color:var(--text);
+font-family:inherit;
+}
+
+button{
+padding:0 18px;
+border:none;
+background:none;
+color:var(--accent);
+cursor:pointer;
+font-family:inherit;
+}
+
+button:disabled{
+color:var(--muted);
+cursor:default;
+}
+
+footer{
+margin-top:12px;
+text-align:center;
+font-size:11px;
+color:var(--muted);
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="wrapper">
+
+<header>
+<h1>&gt; quantum_chatbot</h1>
+<p>superposition in, one collapsed answer out</p>
+</header>
+
+<main>
+
+<div id="log"></div>
+
+<form id="chat-form">
+
+<input
+id="chat-input"
+type="text"
+placeholder="Ask anything..."
+autocomplete="off">
+
+<button id="send-btn">
+send
+</button>
+
+</form>
+
+</main>
+
+<footer>
+Powered by Mistral
+</footer>
+
+</div>
+
+<script>
+
+const API_URL="/chat";
+
+const log=document.getElementById("log");
+const form=document.getElementById("chat-form");
+const input=document.getElementById("chat-input");
+const send=document.getElementById("send-btn");
+
+function addMessage(text,type,tag){
+
+const div=document.createElement("div");
+
+div.className="msg "+type;
+
+div.innerHTML=`<span class="tag">${tag}</span>${text}`;
+
+log.appendChild(div);
+
+log.scrollTop=log.scrollHeight;
+
+return div;
+
+}
+
+async function sendToBot(message){
+
+const response=await fetch(API_URL,{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+message
+})
+
+});
+
+const data=await response.json();
+
+if(!response.ok){
+
+throw new Error(data.error||"Server Error");
+
+}
+
+return data.reply;
+
+}
+
+form.addEventListener("submit",async(e)=>{
+
+e.preventDefault();
+
+const text=input.value.trim();
+
+if(!text)return;
+
+addMessage(text,"user","&gt;");
+
+input.value="";
+
+send.disabled=true;
+
+const thinking=addMessage("Thinking...","bot","ψ");
+
+try{
+
+const reply=await sendToBot(text);
+
+thinking.remove();
+
+addMessage(reply,"bot","ψ");
+
+}
+catch(err){
+
+thinking.remove();
+
+addMessage(err.message,"error","!");
+
+}
+finally{
+
+send.disabled=false;
+
+input.focus();
+
+}
+
+});
+
+</script>
+
+</body>
+</html>
