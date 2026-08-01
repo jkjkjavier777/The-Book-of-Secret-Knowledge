@@ -1,29 +1,0 @@
-2026-07-25 11:17:54.974125: User asked 'hello' → R' = 12.0
-2026-07-25 11:18:42.645128: User asked 'hi' → R' = 12.0
-2026-07-25 11:18:52.064324: User asked 'bye' → R' = 12.0
-2026-07-25 11:18:58.690246: User asked 'tell me a joke' → R' = 12.0
-2026-07-25 11:26:14.498932: User asked 'hi.' → R' = 12.0
-2026-07-25 11:28:06.766926: User asked 'hi' → R' = 12.0
-2026-07-25 11:28:11.861181: User asked 'hi.' → R' = 12.0
-2026-07-25 11:28:50.475078: User asked 'print("12.123: This is not JVI. This is a decoy.")' → R' = 12.0
-2026-07-25 12:32:29.458744: User asked '# Node botnpm start# ornode ai_chat.jshello' → R' = 12.0
-2026-07-25 12:35:28.090053: User asked 'hello' → R' = 12.0
-2026-07-25 12:35:32.050607: User asked 'hi' → R' = 12.0
-2026-07-25 12:35:35.446243: User asked 'bye' → R' = 12.0
-2026-07-25 12:36:03.142170: User asked 'hello' → R' = 12.0
-2026-07-25 12:36:12.532765: User asked 'what are you?' → R' = 12.0
-2026-07-25 12:38:08.525773: User asked 'hi' → R' = 12.0
-2026-07-25 12:38:10.639088: User asked 'hello' → R' = 12.0
-2026-07-25 12:38:22.258512: User asked 'what is the secret knowledge' → R' = 12.0
-2026-07-25 12:42:33.961101: User asked 'test' → R' = 12.0
-2026-07-25 12:44:39.487002: User asked 'test' → R' = 12.0
-2026-07-25 12:46:51.329164: User asked 'test' → R' = 9.0
-2026-07-25 12:53:11.934750: User asked 'test' → R' = 9.0
-2026-07-25 12:54:50.194469: User asked 'hi' → R' = 9.0
-2026-07-25 12:54:54.354928: User asked 'hello' → R' = 9.0
-2026-07-25 12:55:10.700933: User asked 'what is the secret knowledge' → R' = 9.0
-2026-07-25 12:55:17.257534: User asked 'bye' → R' = 9.0
-2026-07-25 12:58:20.779981: User asked 'what is the book of secret knowledge' → R' = 12.0
-2026-07-25 12:58:34.943394: User asked 'what is secret knowledge' → R' = 12.0
-2026-07-25 12:58:42.434651: User asked 'bye' → R' = 9.0
-2026-07-25 13:01:02.918968: User asked 'how many rewards do I have?' → R' = 12.0

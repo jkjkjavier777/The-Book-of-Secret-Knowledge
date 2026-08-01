@@ -14,8 +14,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// ---------- Knowledge base helpers ----------
-
 function ensureKnowledgeFile() {
   const dir = path.dirname(KNOWLEDGE_PATH);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -36,8 +34,6 @@ function saveKnowledge(entries) {
   fs.writeFileSync(KNOWLEDGE_PATH, JSON.stringify(entries, null, 2));
 }
 
-// Adds a new entry to the book. This is the "self-writing" part —
-// every exchange gets appended automatically, no manual editing needed.
 function appendKnowledge(entry) {
   const entries = loadKnowledge();
   entries.push({
@@ -48,8 +44,6 @@ function appendKnowledge(entry) {
   saveKnowledge(entries);
 }
 
-// Very simple keyword-overlap search — no external libraries needed.
-// Good enough for a personal knowledge base; swap for embeddings later if it grows large.
 function findRelevantKnowledge(prompt, limit = 3) {
   const entries = loadKnowledge();
   if (entries.length === 0) return [];
@@ -69,8 +63,6 @@ function findRelevantKnowledge(prompt, limit = 3) {
     .map(s => s.entry);
 }
 
-// ---------- Routes ----------
-
 app.get('/health', (req, res) => {
   res.status(200).json({
     system: "The-Book-of-Secret-Knowledge",
@@ -80,7 +72,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// View how many entries are in the book, and the most recent ones
 app.get('/api/v1/quantum/knowledge', (req, res) => {
   const entries = loadKnowledge();
   res.json({
@@ -90,7 +81,6 @@ app.get('/api/v1/quantum/knowledge', (req, res) => {
   });
 });
 
-// Manually add a fact to the book yourself, instead of waiting for it to self-write
 app.post('/api/v1/quantum/knowledge', (req, res) => {
   const { text } = req.body;
   if (!text) {
@@ -111,10 +101,9 @@ app.post('/api/v1/quantum/chat', async (req, res) => {
   }
 
   try {
-    // 1. Pull anything relevant out of the book
     const relevant = findRelevantKnowledge(prompt);
     const context = relevant.length
-      ? 'Known facts from your knowledge base:\n' + relevant.map(e => `- ${e.text}`).join('\n')
+      ? 'Known facts from your knowledge base:\n' + relevant.map(e => '- ' + e.text).join('\n')
       : null;
 
     const messages = [];
@@ -123,12 +112,11 @@ app.post('/api/v1/quantum/chat', async (req, res) => {
     }
     messages.push({ role: 'user', content: prompt });
 
-    // 2. Ask Mistral, using that context if we found any
     const mistralRes = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${MISTRAL_API_KEY}`
+        'Authorization': 'Bearer ' + MISTRAL_API_KEY
       },
       body: JSON.stringify({
         model: 'mistral-small-latest',
@@ -149,8 +137,7 @@ app.post('/api/v1/quantum/chat', async (req, res) => {
     const data = await mistralRes.json();
     const reply = data.choices?.[0]?.message?.content || "No response generated.";
 
-    // 3. Self-write: append this exchange to the book automatically
-    appendKnowledge({ text: `Q: ${prompt}\nA: ${reply}`, source: 'auto' });
+    appendKnowledge({ text: 'Q: ' + prompt + '\nA: ' + reply, source: 'auto' });
 
     res.json({
       status: "SUCCESS",
@@ -166,10 +153,9 @@ app.post('/api/v1/quantum/chat', async (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   ensureKnowledgeFile();
-  console.log(`\n==================================================`);
-  console.log(`🔥 Quantum Chatbot Server running on port ${PORT}`);
-  console.log(`⚡ Access Endpoint: http://localhost:${PORT}/api/v1/quantum/chat`);
-  console.log(`📖 Knowledge base: ${KNOWLEDGE_PATH}`);
-  console.log(`==================================================\n`);
+  console.log('==================================================');
+  console.log('Quantum Chatbot Server running on port ' + PORT);
+  console.log('Access Endpoint: http://localhost:' + PORT + '/api/v1/quantum/chat');
+  console.log('Knowledge base: ' + KNOWLEDGE_PATH);
+  console.log('==================================================');
 });
-

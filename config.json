@@ -1,0 +1,8 @@
+{
+  "botName": "Secret Knowledge Bot",
+  "port": 3000,
+  "repo": {
+    "owner": "",
+    "name": "The-Book-of-Secret-Knowledge"
+  }
+}

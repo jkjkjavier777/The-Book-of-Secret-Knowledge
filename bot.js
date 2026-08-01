@@ -1,79 +1,157 @@
-require("dotenv").config();
+/**
+ * bot.js — BoundedGlitchEngine (BGE) retrieval bot, first draft
+ *
+ * HONEST SCOPE NOTE:
+ * This implements Layers 1, 3, 7, 8 of the BGE spec (identity persona,
+ * epistemic classification, calibrated confidence, calibrated communication)
+ * on top of the EXISTING retrieval architecture (replies.json pattern match).
+ *
+ * Layers 2, 4, 5, 6 (objective decomposition, divergence, convergence,
+ * recursive critique) require actual generative reasoning over an
+ * open-ended question. A pattern-matched reply cannot do that — there's
+ * no model generating candidate explanations here, just lookup.
+ * Those layers are stubbed with a clearly marked TODO seam for when
+ * Mistral/Claude API is wired in. Nothing below fakes reasoning it isn't
+ * doing.
+ */
 
-const express = require("express");
-const cors = require("cors");
+const fs = require('fs');
+const path = require('path');
 
-const app = express();
+// ---------- Load reply bank ----------
+function loadReplies(filePath = path.join(__dirname, 'data', 'replies.json')) {
+  const raw = fs.readFileSync(filePath, 'utf8');
+  return JSON.parse(raw).replies;
+}
 
-app.use(cors());
-app.use(express.json());
-app.use(express.static("public"));
+// ---------- Layer 1: Identity ----------
+const IDENTITY = {
+  name: 'BoundedGlitchEngine',
+  constraint:
+    'Persona shapes tone and reasoning discipline only — it does not override ' +
+    'evidence classification or manufacture confidence.',
+};
 
-app.get("/", (req, res) => {
-    res.sendFile(__dirname + "/public/index.html");
-});
-
-app.post("/chat", async (req, res) => {
-
-    const message = req.body.message;
-
-    if (!message) {
-        return res.status(400).json({
-            error: "No message provided."
-        });
+// ---------- Pattern matching (retrieval) ----------
+function findMatch(userInput, replies) {
+  const input = userInput.toLowerCase().trim();
+  for (const entry of replies) {
+    for (const pattern of entry.patterns) {
+      if (input.includes(pattern.toLowerCase())) {
+        return entry;
+      }
     }
+  }
+  return null; // no match found — handled by caller
+}
 
-    try {
+// ---------- Layer 3: Epistemic classification check ----------
+const VALID_TYPES = ['fact', 'inference', 'hypothesis', 'speculative', 'opinion'];
 
-        const response = await fetch(
-            "https://api.mistral.ai/v1/chat/completions",
-            {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${process.env.MISTRAL_API_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    model: "mistral-small-latest",
-                    messages: [
-                        {
-                            role: "system",
-                            content: "You are the Guardian of the Book of Secret Knowledge."
-                        },
-                        {
-                            role: "user",
-                            content: message
-                        }
-                    ]
-                })
-            }
-        );
+function validateEntryShape(entry) {
+  const errors = [];
+  if (!entry.reply || typeof entry.reply !== 'string' || !entry.reply.trim()) {
+    errors.push('Empty or missing reply text.');
+  }
+  if (!VALID_TYPES.includes(entry.type)) {
+    errors.push(`Unrecognized type "${entry.type}".`);
+  }
+  if (
+    typeof entry.confidence !== 'number' ||
+    entry.confidence < 0 ||
+    entry.confidence > 1
+  ) {
+    errors.push(`Confidence "${entry.confidence}" out of bounds [0,1].`);
+  }
+  return errors;
+}
 
-        const data = await response.json();
+// ---------- Content safety guard ----------
+const BANNED_PATTERNS = [
+  /\bignore previous\b/i,
+  /\bdelete system\b/i,
+  /\bexploit\b/i,
+];
 
-        if (!response.ok) {
-            return res.status(response.status).json(data);
-        }
+function passesSafetyCheck(text) {
+  return !BANNED_PATTERNS.some((re) => re.test(text));
+}
 
-        res.json({
-            reply: data.choices[0].message.content
-        });
+// ---------- Layer 8: Calibrated communication ----------
+function formatByType(entry) {
+  const { reply, type, confidence = 1.0 } = entry;
 
-    } catch (err) {
+  switch (type) {
+    case 'fact':
+      return reply; // "Evidence strongly supports..." — stated plainly
+    case 'inference':
+      return `The available evidence suggests: ${reply}`;
+    case 'hypothesis':
+      return `One possible explanation is: ${reply}`;
+    case 'speculative':
+      if (confidence >= 0.75) return `This is a plausible possibility: ${reply}`;
+      if (confidence >= 0.5) return `I'm not certain, but one possibility is: ${reply}`;
+      return `This is exploratory rather than established: ${reply}`;
+    case 'opinion':
+      return `My view: ${reply}`;
+    default:
+      return reply;
+  }
+}
 
-        console.error(err);
+// ---------- Layers 2/4/5/6 seam (not yet real — see scope note) ----------
+function reasonOverOpenQuestion(userInput) {
+  // TODO: once Mistral/Claude API is connected, this is where:
+  //   - Layer 2: split explicit / implied / underlying question
+  //   - Layer 4: generate multiple competing candidate explanations
+  //   - Layer 5: score candidates against evidence/consistency/simplicity
+  //   - Layer 6: run a self-critique pass before returning
+  // would actually happen. Right now there is no generative step,
+  // so this function intentionally does nothing but signal the gap.
+  return null;
+}
 
-        res.status(500).json({
-            error: err.message
-        });
+// ---------- Main handler ----------
+function handleMessage(userInput, session = { history: [] }) {
+  const replies = loadReplies();
+  const match = findMatch(userInput, replies);
 
-    }
+  if (!match) {
+    // Open-ended question with no retrieval match — this is exactly the
+    // case Layers 2/4/5/6 are meant for, and exactly where this build
+    // can't yet deliver on that honestly.
+    const reasoned = reasonOverOpenQuestion(userInput);
+    if (reasoned) return reasoned;
+    return "I don't have a grounded answer for that yet — no matching entry, and no reasoning model connected.";
+  }
 
-});
+  const shapeErrors = validateEntryShape(match);
+  if (shapeErrors.length) {
+    console.warn(`[BGE] Rejected malformed entry ${match.id}:`, shapeErrors);
+    return "I couldn't verify that response.";
+  }
 
-const PORT = process.env.PORT || 3001;
+  if (!passesSafetyCheck(match.reply)) {
+    return "I couldn't verify that response.";
+  }
 
-app.listen(PORT, () => {
-    console.log("Book of Secret Knowledge");
-    console.log(`Running on http://localhost:${PORT}`);
-});
+  const lastResponse = session.history[session.history.length - 1];
+  if (lastResponse && lastResponse.toLowerCase() === match.reply.toLowerCase()) {
+    return "I couldn't verify that response.";
+  }
+
+  const output = formatByType(match);
+  session.history.push(output);
+  return output;
+}
+
+module.exports = {
+  IDENTITY,
+  loadReplies,
+  findMatch,
+  validateEntryShape,
+  passesSafetyCheck,
+  formatByType,
+  handleMessage,
+};
+
