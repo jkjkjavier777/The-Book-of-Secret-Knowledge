@@ -1,0 +1,62 @@
+{
+  "hello": [
+    "Hello! How can I help you today?",
+    "Hi there! What can I do for you?",
+    "Greetings! How may I assist you?"
+  ],
+  "help": [
+    "I can help you with various topics including programming, system administration, and general knowledge. What do you need?",
+    "How can I assist you? Feel free to ask about CLI tools, web development, or any technical questions.",
+    "I'm here to help! Ask me about shells, networks, security, or any other topic from the Book of Secret Knowledge."
+  ],
+  "what is your name": [
+    "I am a helpful assistant based on the Book of Secret Knowledge.",
+    "You can call me the Guardian of the Book.",
+    "I'm an AI assistant designed to help with technical knowledge."
+  ],
+  "what can you do": [
+    "I can answer questions about CLI tools, GUI tools, web tools, systems, networks, containers, and much more.",
+    "I have knowledge about various technical topics including security, development, and system administration.",
+    "I can help you find information about tools, best practices, and technical concepts."
+  ],
+  "thank you": [
+    "You're welcome! Is there anything else I can help you with?",
+    "Happy to help! Let me know if you have more questions.",
+    "My pleasure! Feel free to ask more questions."
+  ],
+  "goodbye": [
+    "Goodbye! Have a great day!",
+    "See you later! Come back if you have more questions.",
+    "Farewell! Feel free to return anytime."
+  ],
+  "test": [
+    "This is a test response.",
+    "Testing, testing, 123.",
+    "Test message received."
+  ],
+  "grep": [
+    "grep is a command-line utility for searching plain-text data for lines matching a regular expression.",
+    "To use grep: grep 'pattern' filename. For recursive search: grep -r 'pattern' directory.",
+    "grep supports many options like -i (case insensitive), -v (invert match), -n (show line numbers)."
+  ],
+  "curl": [
+    "curl is a command-line tool for transferring data with URLs.",
+    "Basic usage: curl https://example.com. Use -o to save output to file.",
+    "curl supports many protocols including HTTP, HTTPS, FTP, and more."
+  ],
+  "docker": [
+    "Docker is a platform for developing, shipping, and running applications in containers.",
+    "Basic commands: docker build, docker run, docker ps, docker stop.",
+    "Docker allows you to package an application with all its dependencies into a standardized unit."
+  ],
+  "linux": [
+    "Linux is a family of open-source Unix-like operating systems.",
+    "Popular distributions include Ubuntu, Fedora, Debian, and CentOS.",
+    "Linux is widely used in servers, embedded systems, and personal computers."
+  ],
+  "security": [
+    "Security is important for protecting systems and data from threats.",
+    "Best practices include using strong passwords, keeping software updated, and following the principle of least privilege.",
+    "Security involves both technical measures and user education."
+  ]
+}
