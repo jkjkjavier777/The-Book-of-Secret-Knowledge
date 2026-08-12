@@ -24,7 +24,7 @@
   <a href="https://opencollective.com/the-book-of-secret-knowledge" alt="Financial Contributors on Open Collective">
     <img src="https://img.shields.io/opencollective/backers/the-book-of-secret-knowledge?style=for-the-badge&color=FF4500&labelColor=A9A9A9">
   </a>
-  <a href="https://opencollective.com/the-book-of-secret-knowledge" alt="Financial Contributors on Open Collective">
+   <a href="https://opencollective.com/the-book-of-secret-knowledge" alt="Financial Contributors on Open Collective">
     <img src="https://img.shields.io/opencollective/sponsors/the-book-of-secret-knowledge?style=for-the-badge&color=FF4500&labelColor=A9A9A9">
   </a>
 </p>
