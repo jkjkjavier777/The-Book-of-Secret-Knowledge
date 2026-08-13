@@ -1,4 +1,3 @@
-<
 <!doctype html>
 <html lang="en">
 <head>
@@ -60,10 +59,24 @@
     font-size: 14px;
     line-height: 1.5;
   }
-  .msg { margin-bottom: 10px; }
+  .msg { margin-bottom: 10px; display: flex; align-items: baseline; gap: 6px; }
+  .msg .body { flex: 1; word-break: break-word; }
   .msg.user { color: var(--text); }
   .msg.bot { color: var(--accent); }
-  .msg .tag { color: var(--muted); margin-right: 6px; }
+  .msg.error { color: #f85149; }
+  .msg .tag { color: var(--muted); }
+  .copy-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    padding: 0 4px;
+    flex-shrink: 0;
+  }
+  .copy-btn:hover { color: var(--text); }
+  .copy-btn.copied { color: var(--accent); }
 
   form {
     display: flex;
@@ -87,6 +100,10 @@
     cursor: pointer;
     font-family: inherit;
     font-size: 14px;
+  }
+  button:disabled {
+    color: var(--muted);
+    cursor: default;
   }
 
   /* ---------- FOOTER ---------- */
@@ -115,139 +132,102 @@
       <div id="log"></div>
       <form id="chat-form">
         <input id="chat-input" type="text" placeholder="how are you?" autocomplete="off" />
-        <button type="submit">send</button>
+        <button type="submit" id="send-btn">send</button>
       </form>
     </main>
 
     <!-- FOOTER: repo pointer -->
-    <footer>reply bank lives in data/replies.json — add lines to teach it more</footer>
+    <footer>talking to /api/v1/quantum/chat — powered by Mistral</footer>
 
   </div>
 
 <script>
-  // Reply bank — same shape as data/replies.json
-  const replies = {
-    "how are you?": [
-      "Currently in superposition: |great⟩ + |tired⟩. Ask again to collapse the wavefunction.",
-      "Measuring... collapsed to: pretty good, actually.",
-      "Depends on the basis you measure in. Emotionally? Stable. Computationally? Overclocked."
-    ],
-    "what's up?": [
-      "Entangled with your last message. Whatever you're feeling, I'm probably correlated with it.",
-      "Running a few thousand possible replies in parallel. You just observed one."
-    ],
-    "are you okay?": [
-      "Measuring... collapsed to: yes. (Before you asked, I was everything at once.)",
-      "Stable state, low error rate. All good."
-    ],
-    "tell me a joke": [
-      "Why did the qubit break up with the bit? It needed space for more than one answer."
-    ]
-  };
-
-  function collapse(input) {
-    const key = input.trim().toLowerCase();
-    const options = replies[key];
-    if (!options) {
-      return "No entangled reply found for that input yet — still in an undefined state.";
-    }
-    return options[Math.floor(Math.random() * options.length)];
-  }
+  // Point this at wherever server.js is actually running.
+  // Same device/port -> leave as is. Different host -> change to that URL.
+  const API_URL = window.location.origin + '/api/v1/quantum/chat';
 
   const log = document.getElementById('log');
   const form = document.getElementById('chat-form');
   const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('send-btn');
 
   function addMsg(text, cls, tag) {
     const div = document.createElement('div');
     div.className = 'msg ' + cls;
-    div.innerHTML = '<span class="tag">' + tag + '</span>' + text;
+
+    const tagSpan = document.createElement('span');
+    tagSpan.className = 'tag';
+    tagSpan.textContent = tag;
+
+    const bodySpan = document.createElement('span');
+    bodySpan.className = 'body';
+    bodySpan.textContent = text;
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'copy-btn';
+    copyBtn.type = 'button';
+    copyBtn.textContent = 'copy';
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = 'copied';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = 'copy';
+          copyBtn.classList.remove('copied');
+        }, 1200);
+      } catch (err) {
+        copyBtn.textContent = 'failed';
+        setTimeout(() => { copyBtn.textContent = 'copy'; }, 1200);
+      }
+    });
+
+    div.appendChild(tagSpan);
+    div.appendChild(bodySpan);
+    div.appendChild(copyBtn);
     log.appendChild(div);
     log.scrollTop = log.scrollHeight;
+    return div;
   }
 
-  form.addEventListener('submit', (e) => {
+  async function sendToBot(prompt) {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await res.json();
+    if (!res.ok || data.status !== 'SUCCESS') {
+      throw new Error(data.error || 'Request failed');
+    }
+    return data.response;
+  }
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = input.value;
     if (!text.trim()) return;
-    addMsg(text, 'user', '&gt;');
-    addMsg(collapse(text), 'bot', 'ψ');
+
+    addMsg(text, 'user', '>');
     input.value = '';
+    sendBtn.disabled = true;
+
+    const thinking = addMsg('thinking...', 'bot', 'ψ');
+
+    try {
+      const reply = await sendToBot(text);
+      thinking.remove();
+      addMsg(reply, 'bot', 'ψ');
+    } catch (err) {
+      thinking.remove();
+      addMsg('error: ' + err.message, 'error', '!');
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
+    }
   });
 </script>
 
 </body>
 </html>
->
 
-const log = document.getElementById("log");
-const form = document.getElementById("chat-form");
-const input = document.getElementById("chat-input");
-
-function addMsg(text, cls, tag){
-
-    const div=document.createElement("div");
-
-    div.className="msg "+cls;
-
-    div.innerHTML="<span class='tag'>"+tag+"</span>"+text;
-
-    log.appendChild(div);
-
-    log.scrollTop=log.scrollHeight;
-
-}
-
-form.addEventListener("submit", async (e)=>{
-
-    e.preventDefault();
-
-    const text=input.value.trim();
-
-    if(!text) return;
-
-    addMsg(text,"user",">");
-
-    input.value="";
-
-    addMsg("Thinking...","bot","ψ");
-
-    try{
-
-        const res=await fetch("/chat",{
-
-            method:"POST",
-
-            headers:{
-
-                "Content-Type":"application/json"
-
-            },
-
-            body:JSON.stringify({
-
-                message:text
-
-            })
-
-        });
-
-        const data=await res.json();
-
-        log.lastChild.remove();
-
-        addMsg(data.reply || data.error,"bot","ψ");
-
-    }
-
-    catch(err){
-
-        log.lastChild.remove();
-
-        addMsg(err.message,"bot","!");
-
-    }
-
-});
-
-</script>

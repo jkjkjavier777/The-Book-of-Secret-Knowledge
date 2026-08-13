@@ -2,9 +2,9 @@
   "name": "the-book-of-secret-knowledge-bot",
   "version": "1.0.0",
   "description": "Chatbot project combining local terminal chat and Messenger/Instagram webhook integration.",
-  "main": "scripts/bot.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node scripts/bot.js",
+    "start": "node server.js",
     "server": "node scripts/bot.js --server",
     "list": "node scripts/bot.js --list",
     "test": "jest",

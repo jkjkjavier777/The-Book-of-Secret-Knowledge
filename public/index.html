@@ -1,264 +1,480 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Quantum Chatbot</title>
-
 <style>
-:root{
---bg:#0d1117;
---panel:#161b22;
---text:#e6edf3;
---accent:#7ee787;
---muted:#8b949e;
---error:#f85149;
-}
+  :root {
+    --bg: #0b0d12;
+    --panel: #14171f;
+    --panel-2: #1b1f2a;
+    --border: #262b38;
+    --text: #e9edf5;
+    --muted: #7a8296;
+    --orange: #ff6b35;
+    --orange-soft: rgba(255, 107, 53, 0.15);
+    --error: #f85149;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+  body {
+    background:
+      radial-gradient(circle at 20% -10%, rgba(255,107,53,0.08), transparent 40%),
+      radial-gradient(circle at 100% 10%, rgba(255,107,53,0.05), transparent 35%),
+      var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+  }
 
-*{box-sizing:border-box;}
+  .app {
+    max-width: 640px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
 
-body{
-margin:0;
-background:var(--bg);
-color:var(--text);
-font-family:ui-monospace,"SF Mono",Menlo,monospace;
-display:flex;
-justify-content:center;
-padding:24px;
-}
+  /* ---------- HEADER ---------- */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 4px 18px 4px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--orange), #ff9662);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #14171f;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .brand-text h1 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.2px;
+  }
+  .brand-text p {
+    font-size: 11.5px;
+    color: var(--muted);
+    margin: 1px 0 0 0;
+  }
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 100px;
+  }
+  .status-pill .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--orange);
+    box-shadow: 0 0 6px var(--orange);
+  }
 
-.wrapper{
-width:100%;
-max-width:560px;
-display:flex;
-flex-direction:column;
-}
+  /* ---------- CHAT PANEL ---------- */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    min-height: 0;
+  }
 
-header{
-text-align:center;
-margin-bottom:16px;
-}
+  #log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  #log:empty::before {
+    content: "Ask anything. Your book of knowledge grows as you go.";
+    color: var(--muted);
+    font-size: 13px;
+    margin: auto;
+    text-align: center;
+    padding: 40px 20px;
+  }
 
-header h1{
-margin:0;
-font-size:20px;
-}
+  .row {
+    display: flex;
+    flex-direction: column;
+    max-width: 82%;
+  }
+  .row.user { align-self: flex-end; align-items: flex-end; }
+  .row.bot { align-self: flex-start; align-items: flex-start; }
 
-header p{
-margin-top:6px;
-color:var(--muted);
-font-size:13px;
-}
+  .bubble {
+    padding: 11px 14px;
+    border-radius: 14px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .row.user .bubble {
+    background: linear-gradient(135deg, var(--orange), #e5542b);
+    color: #14171f;
+    border-bottom-right-radius: 4px;
+    font-weight: 500;
+  }
+  .row.bot .bubble {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+  }
+  .row.bot .bubble.error {
+    border-color: var(--error);
+    color: var(--error);
+  }
+  .row.bot .bubble.thinking {
+    color: var(--muted);
+    font-style: italic;
+  }
 
-main{
-background:var(--panel);
-border:1px solid #30363d;
-border-radius:8px;
-height:60vh;
-display:flex;
-flex-direction:column;
-}
+  .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 5px;
+    padding: 0 2px;
+  }
+  .actions button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 2px 0;
+    font-family: inherit;
+  }
+  .actions button:hover { color: var(--text); }
+  .actions button.done { color: var(--orange); }
 
-#log{
-flex:1;
-overflow-y:auto;
-padding:16px;
-}
+  /* ---------- ATTACHMENT CHIP ---------- */
+  .attachment-chip {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: var(--orange-soft);
+    border: 1px solid var(--orange);
+    color: var(--orange);
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    margin: 10px 14px 0 14px;
+  }
+  .attachment-chip.visible { display: flex; }
+  .attachment-chip .name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .attachment-chip button {
+    background: none;
+    border: none;
+    color: var(--orange);
+    font-size: 14px;
+    cursor: pointer;
+    line-height: 1;
+  }
 
-.msg{
-margin-bottom:12px;
-line-height:1.5;
-word-wrap:break-word;
-}
+  /* ---------- INPUT BAR ---------- */
+  form {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 12px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .icon-btn:hover {
+    color: var(--orange);
+    border-color: var(--orange);
+  }
+  textarea {
+    flex: 1;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    resize: none;
+    max-height: 120px;
+    line-height: 1.4;
+  }
+  textarea:focus { border-color: var(--orange); }
+  .send-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    background: var(--orange);
+    color: #14171f;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .send-btn:disabled {
+    background: var(--panel-2);
+    color: var(--muted);
+    cursor: default;
+  }
 
-.user{
-color:var(--text);
-}
-
-.bot{
-color:var(--accent);
-}
-
-.error{
-color:var(--error);
-}
-
-.tag{
-color:var(--muted);
-margin-right:6px;
-}
-
-form{
-display:flex;
-border-top:1px solid #30363d;
-}
-
-input{
-flex:1;
-padding:12px;
-background:transparent;
-border:none;
-outline:none;
-color:var(--text);
-font-family:inherit;
-}
-
-button{
-padding:0 18px;
-border:none;
-background:none;
-color:var(--accent);
-cursor:pointer;
-font-family:inherit;
-}
-
-button:disabled{
-color:var(--muted);
-cursor:default;
-}
-
-footer{
-margin-top:12px;
-text-align:center;
-font-size:11px;
-color:var(--muted);
-}
+  footer {
+    text-align: center;
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-top: 10px;
+  }
 </style>
-
 </head>
-
 <body>
 
-<div class="wrapper">
+  <div class="app">
 
-<header>
-<h1>&gt; quantum_chatbot</h1>
-<p>superposition in, one collapsed answer out</p>
-</header>
+    <header>
+      <div class="brand">
+        <div class="brand-mark">Q</div>
+        <div class="brand-text">
+          <h1>Quantum Chatbot</h1>
+          <p>The Book of Secret Knowledge</p>
+        </div>
+      </div>
+      <div class="status-pill"><span class="dot"></span>Mistral</div>
+    </header>
 
-<main>
+    <main>
+      <div id="log"></div>
 
-<div id="log"></div>
+      <div class="attachment-chip" id="attachment-chip">
+        <span class="name" id="attachment-name"></span>
+        <button type="button" id="attachment-remove">&times;</button>
+      </div>
 
-<form id="chat-form">
+      <form id="chat-form">
+        <button type="button" class="icon-btn" id="attach-btn" title="Add attachment">+</button>
+        <input type="file" id="file-input" accept=".txt,.md,.json,.csv" hidden />
+        <textarea id="chat-input" placeholder="Ask anything..." rows="1"></textarea>
+        <button type="submit" class="send-btn" id="send-btn" disabled>&#8593;</button>
+      </form>
+    </main>
 
-<input
-id="chat-input"
-type="text"
-placeholder="Ask anything..."
-autocomplete="off">
+    <footer>talking to /api/v1/quantum/chat &middot; knowledge base grows as you go</footer>
 
-<button id="send-btn">
-send
-</button>
-
-</form>
-
-</main>
-
-<footer>
-Powered by Mistral
-</footer>
-
-</div>
+  </div>
 
 <script>
+  const API_URL = window.location.origin + '/api/v1/quantum/chat';
 
-const API_URL="/chat";
+  const log = document.getElementById('log');
+  const form = document.getElementById('chat-form');
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('send-btn');
+  const attachBtn = document.getElementById('attach-btn');
+  const fileInput = document.getElementById('file-input');
+  const attachmentChip = document.getElementById('attachment-chip');
+  const attachmentName = document.getElementById('attachment-name');
+  const attachmentRemove = document.getElementById('attachment-remove');
 
-const log=document.getElementById("log");
-const form=document.getElementById("chat-form");
-const input=document.getElementById("chat-input");
-const send=document.getElementById("send-btn");
+  let pendingAttachment = null; // { name, content }
 
-function addMessage(text,type,tag){
+  // Auto-resize textarea, toggle send button
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = input.scrollHeight + 'px';
+    sendBtn.disabled = input.value.trim() === '' && !pendingAttachment;
+  });
 
-const div=document.createElement("div");
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!sendBtn.disabled) form.requestSubmit();
+    }
+  });
 
-div.className="msg "+type;
+  attachBtn.addEventListener('click', () => fileInput.click());
 
-div.innerHTML=`<span class="tag">${tag}</span>${text}`;
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      pendingAttachment = { name: file.name, content: reader.result };
+      attachmentName.textContent = file.name;
+      attachmentChip.classList.add('visible');
+      sendBtn.disabled = false;
+    };
+    reader.readAsText(file);
+  });
 
-log.appendChild(div);
+  attachmentRemove.addEventListener('click', () => {
+    pendingAttachment = null;
+    fileInput.value = '';
+    attachmentChip.classList.remove('visible');
+    sendBtn.disabled = input.value.trim() === '';
+  });
 
-log.scrollTop=log.scrollHeight;
+  function addRow(text, who) {
+    const row = document.createElement('div');
+    row.className = 'row ' + who;
 
-return div;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    row.appendChild(bubble);
 
-}
+    log.appendChild(row);
+    log.scrollTop = log.scrollHeight;
+    return { row, bubble };
+  }
 
-async function sendToBot(message){
+  function addActions(row, text) {
+    const actions = document.createElement('div');
+    actions.className = 'actions';
 
-const response=await fetch(API_URL,{
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.textContent = 'copy';
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = 'copied';
+        copyBtn.classList.add('done');
+        setTimeout(() => { copyBtn.textContent = 'copy'; copyBtn.classList.remove('done'); }, 1200);
+      } catch {
+        copyBtn.textContent = 'failed';
+        setTimeout(() => { copyBtn.textContent = 'copy'; }, 1200);
+      }
+    });
 
-method:"POST",
+    const shareBtn = document.createElement('button');
+    shareBtn.type = 'button';
+    shareBtn.textContent = 'share';
+    shareBtn.addEventListener('click', async () => {
+      if (navigator.share) {
+        try { await navigator.share({ text }); } catch {}
+      } else {
+        try {
+          await navigator.clipboard.writeText(text);
+          shareBtn.textContent = 'copied';
+          shareBtn.classList.add('done');
+          setTimeout(() => { shareBtn.textContent = 'share'; shareBtn.classList.remove('done'); }, 1200);
+        } catch {
+          shareBtn.textContent = 'failed';
+          setTimeout(() => { shareBtn.textContent = 'share'; }, 1200);
+        }
+      }
+    });
 
-headers:{
-"Content-Type":"application/json"
-},
+    actions.appendChild(copyBtn);
+    actions.appendChild(shareBtn);
+    row.appendChild(actions);
+  }
 
-body:JSON.stringify({
-message
-})
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text && !pendingAttachment) return;
 
-});
+    let promptToSend = text;
+    let displayText = text;
 
-const data=await response.json();
+    if (pendingAttachment) {
+      promptToSend = `Attached file "${pendingAttachment.name}":\n${pendingAttachment.content}\n\n${text}`;
+      displayText = text ? `${text}\n\n[attached: ${pendingAttachment.name}]` : `[attached: ${pendingAttachment.name}]`;
+    }
 
-if(!response.ok){
+    const { row: userRow } = addRow(displayText, 'user');
+    addActions(userRow, displayText);
 
-throw new Error(data.error||"Server Error");
+    input.value = '';
+    input.style.height = 'auto';
+    pendingAttachment = null;
+    fileInput.value = '';
+    attachmentChip.classList.remove('visible');
+    sendBtn.disabled = true;
 
-}
+    const { row: thinkingRow, bubble: thinkingBubble } = addRow('thinking...', 'bot');
+    thinkingBubble.classList.add('thinking');
 
-return data.reply;
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: promptToSend })
+      });
+      const data = await res.json();
+      thinkingRow.remove();
 
-}
-
-form.addEventListener("submit",async(e)=>{
-
-e.preventDefault();
-
-const text=input.value.trim();
-
-if(!text)return;
-
-addMessage(text,"user","&gt;");
-
-input.value="";
-
-send.disabled=true;
-
-const thinking=addMessage("Thinking...","bot","ψ");
-
-try{
-
-const reply=await sendToBot(text);
-
-thinking.remove();
-
-addMessage(reply,"bot","ψ");
-
-}
-catch(err){
-
-thinking.remove();
-
-addMessage(err.message,"error","!");
-
-}
-finally{
-
-send.disabled=false;
-
-input.focus();
-
-}
-
-});
-
+      if (!res.ok || data.status !== 'SUCCESS') {
+        const { row } = addRow(data.error || 'Request failed', 'bot');
+        row.querySelector('.bubble').classList.add('error');
+      } else {
+        const { row } = addRow(data.response, 'bot');
+        addActions(row, data.response);
+      }
+    } catch (err) {
+      thinkingRow.remove();
+      const { row } = addRow(err.message, 'bot');
+      row.querySelector('.bubble').classList.add('error');
+    } finally {
+      input.focus();
+    }
+  });
 </script>
 
 </body>
 </html>
+
